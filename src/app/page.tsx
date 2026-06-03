@@ -30,11 +30,12 @@ export default function Home() {
     setShowTokenInput(false);
   };
 
-  const handleGenerate = useCallback(async () => {
-    const reposToFetch = selectedRepos.map((r) => r.repo);
+  const handleGenerate = useCallback(async (repos: RepoWithPriority[]) => {
+    setSelectedRepos(repos);
+    const reposToFetch = repos.map((r) => r.repo);
     if (reposToFetch.length === 0) return;
     await fetchContexts(reposToFetch);
-  }, [selectedRepos, fetchContexts]);
+  }, [fetchContexts]);
 
   const handleSelectionChange = useCallback((repos: RepoWithPriority[]) => {
     setSelectedRepos(repos);

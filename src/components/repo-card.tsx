@@ -41,6 +41,7 @@ export function RepoCard({ repo, selected, priority, qualityScore, onToggle, onP
         <input
           type="checkbox"
           checked={selected}
+          onClick={(e) => e.stopPropagation()}
           onChange={() => onToggle(repo.id)}
           className={`h-5 w-5 shrink-0 appearance-none border-[3px] focus:border-[5px] focus:outline-none ${
             selected

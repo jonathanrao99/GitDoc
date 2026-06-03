@@ -26,10 +26,10 @@ export function useRepoContext() {
         repos.map(async (repo) => {
           const [owner, name] = repo.full_name.split("/");
           const branch = repo.default_branch || "main";
-          const res = await fetch(
-            `/api/github/repo-context?owner=${owner}&repo=${name}&branch=${branch}`,
-            { headers: token ? { "x-github-token": token } : {} }
-          );
+          const params = new URLSearchParams({ owner, repo: name, branch });
+          const res = await fetch(`/api/github/repo-context?${params}`, {
+            headers: token ? { "x-github-token": token } : {},
+          });
           if (!res.ok) throw new Error(`Failed to fetch ${name}`);
           const data: RepoContext = await res.json();
           return { id: repo.id, context: data };

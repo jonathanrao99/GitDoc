@@ -1,4 +1,4 @@
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitdoc.dev";
+import { siteUrl } from "@/lib/site";
 
 export function GET() {
   return new Response(

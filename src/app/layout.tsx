@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Archivo_Black, Space_Mono, Work_Sans } from "next/font/google";
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitdoc.dev";
 const description = "Compile GitHub repositories into deep, structured, LLM-ready context for Claude, GPT, Gemini, Cursor, Codex, and other AI coding assistants.";
 
 const archivoBlack = Archivo_Black({

@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GitDoc
+
+GitDoc compiles public GitHub profiles and repositories into structured, LLM-ready markdown for Claude, GPT, Gemini, Cursor, Codex, and other AI coding assistants.
+
+Live site: https://git-docv1.vercel.app
+
+## Features
+
+- Fetch public GitHub profile and repository metadata.
+- Select repositories and adjust priority levels.
+- Generate assistant-ready context in multiple output formats.
+- Estimate token usage and summarize repository quality signals.
+- Publish SEO, sitemap, robots, Open Graph, and `llms.txt` metadata.
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create a local environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+NEXT_PUBLIC_SITE_URL=https://git-docv1.vercel.app
+```
 
-## Learn More
+Set the same value in Vercel project environment variables for production deployments.
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `npm run dev` starts the local Next.js server.
+- `npm run lint` runs ESLint.
+- `npm run typecheck` runs TypeScript without emitting files.
+- `npm run build` creates a production build.
+- `npm run start` starts the production server.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy
 
-## Deploy on Vercel
+The app is deployed on Vercel from the GitHub repository:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+https://github.com/jonathanrao99/GitDoc

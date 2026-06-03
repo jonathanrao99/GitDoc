@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchRepoContext } from "@/lib/github";
 
+const GITHUB_OWNER_PATTERN = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
+const GITHUB_REPO_PATTERN = /^[a-zA-Z0-9._-]{1,100}$/;
+const GITHUB_BRANCH_PATTERN = /^[^\s~^:?*[\\\]]{1,255}$/;
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -11,6 +15,10 @@ export async function GET(req: NextRequest) {
 
     if (!owner || !repo) {
       return NextResponse.json({ error: "owner and repo are required" }, { status: 400 });
+    }
+
+    if (!GITHUB_OWNER_PATTERN.test(owner) || !GITHUB_REPO_PATTERN.test(repo) || !GITHUB_BRANCH_PATTERN.test(branch)) {
+      return NextResponse.json({ error: "Invalid repository parameters" }, { status: 400 });
     }
 
     const data = await fetchRepoContext(owner, repo, branch, token);

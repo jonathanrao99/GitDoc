@@ -28,14 +28,24 @@ async function githubFetch<T>(url: string, token?: string): Promise<T> {
   return res.json();
 }
 
+function githubUrl(path: string, params?: Record<string, string>): string {
+  const url = new URL(path, GITHUB_API);
+  if (params) {
+    for (const [key, value] of Object.entries(params)) {
+      url.searchParams.set(key, value);
+    }
+  }
+  return url.toString();
+}
+
 export async function fetchProfile(username: string, token?: string): Promise<{ profile: GitHubProfile; repos: GitHubRepo[] }> {
   const cacheKey = `profile:${token ? "auth" : "public"}:${username}`;
   const cached = cacheGet<{ profile: GitHubProfile; repos: GitHubRepo[] }>(cacheKey);
   if (cached) return cached;
 
   const [profile, repos] = await Promise.all([
-    githubFetch<GitHubProfile>(`${GITHUB_API}/users/${username}`, token),
-    githubFetch<GitHubRepo[]>(`${GITHUB_API}/users/${username}/repos?per_page=100&sort=updated&type=all`, token),
+    githubFetch<GitHubProfile>(githubUrl(`/users/${username}`), token),
+    githubFetch<GitHubRepo[]>(githubUrl(`/users/${username}/repos`, { per_page: "100", sort: "updated", type: "all" }), token),
   ]);
 
   const result = { profile, repos: repos.filter((r) => !r.disabled) };
@@ -45,7 +55,7 @@ export async function fetchProfile(username: string, token?: string): Promise<{ 
 
 async function fetchReadme(owner: string, repo: string, token?: string): Promise<string | null> {
   try {
-    const res = await fetch(`${GITHUB_API}/repos/${owner}/${repo}/readme`, {
+    const res = await fetch(githubUrl(`/repos/${owner}/${repo}/readme`), {
       headers: { ...getHeaders(token), Accept: "application/vnd.github.v3.raw" },
     });
     if (!res.ok) return null;
@@ -59,7 +69,7 @@ async function fetchReadme(owner: string, repo: string, token?: string): Promise
 async function fetchCommits(owner: string, repo: string, token?: string): Promise<GitHubCommit[]> {
   try {
     return githubFetch<GitHubCommit[]>(
-      `${GITHUB_API}/repos/${owner}/${repo}/commits?per_page=10`,
+      githubUrl(`/repos/${owner}/${repo}/commits`, { per_page: "10" }),
       token
     );
   } catch {
@@ -70,7 +80,7 @@ async function fetchCommits(owner: string, repo: string, token?: string): Promis
 async function fetchLanguages(owner: string, repo: string, token?: string): Promise<Record<string, number>> {
   try {
     return githubFetch<Record<string, number>>(
-      `${GITHUB_API}/repos/${owner}/${repo}/languages`,
+      githubUrl(`/repos/${owner}/${repo}/languages`),
       token
     );
   } catch {
@@ -81,7 +91,7 @@ async function fetchLanguages(owner: string, repo: string, token?: string): Prom
 async function fetchFileTree(owner: string, repo: string, branch: string, token?: string): Promise<FileNode[]> {
   try {
     const data = await githubFetch<{ tree: Array<{ path: string; type: string }> }>(
-      `${GITHUB_API}/repos/${owner}/${repo}/git/trees/${branch}?recursive=2`,
+      githubUrl(`/repos/${owner}/${repo}/git/trees/${branch}`, { recursive: "2" }),
       token
     );
     return buildTree(data.tree.map((item) => ({ path: item.path, type: item.type as "blob" | "tree" })));
@@ -116,7 +126,7 @@ type DepFile = "package.json" | "requirements.txt" | "requirements-ml.txt" | "py
 
 async function fetchDependencyFile(owner: string, repo: string, branch: string, path: DepFile, token?: string): Promise<Record<string, string> | null> {
   try {
-    const url = `${GITHUB_API}/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+    const url = githubUrl(`/repos/${owner}/${repo}/contents/${path}`, { ref: branch });
     const res = await fetch(url, { headers: getHeaders(token) });
     if (!res.ok) return null;
     const data = await res.json();
@@ -270,7 +280,7 @@ export async function fetchRepoContext(owner: string, repo: string, branch: stri
   if (cached) return cached;
 
   const [metadata, languages, readme, commits, fileTree, dependencies] = await Promise.all([
-    githubFetch<GitHubRepo>(`${GITHUB_API}/repos/${owner}/${repo}`, token),
+    githubFetch<GitHubRepo>(githubUrl(`/repos/${owner}/${repo}`), token),
     fetchLanguages(owner, repo, token),
     fetchReadme(owner, repo, token),
     fetchCommits(owner, repo, token),
