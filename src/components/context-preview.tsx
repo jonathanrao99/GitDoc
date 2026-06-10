@@ -147,7 +147,7 @@ export function ContextPreview({
         <div>
           <h2 ref={headingRef} tabIndex={-1} className="font-[var(--font-headline)] text-3xl leading-none text-black outline-none sm:text-4xl lg:text-3xl">AI Repo Assessment</h2>
           <p className="mt-2 font-mono text-xs text-black">
-            {model ? `Analyzed with ${model}${cacheHit ? " from local cache" : ""}.` : "Select repos and run AI analysis."}
+            {model ? `OpenRouter ${cacheHit ? "cached" : "fresh"} analysis with ${model}.` : "Select repos and run AI analysis."}
           </p>
           {sourceStats && sourceStats.length > 0 && (
             <p className="mt-1 font-mono text-[11px] text-black">

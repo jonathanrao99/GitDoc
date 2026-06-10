@@ -6,6 +6,8 @@ import type { RepoWithPriority } from "@/types/context";
 import type { AnalysisPurpose, AnalysisRequest, AnalysisResponse, AssessmentStyle } from "@/types/analysis";
 import { getAnalysisCache, setAnalysisCache } from "@/lib/analysis-cache";
 
+const ANALYSIS_CACHE_VERSION = "rich-report-v2";
+
 interface AnalyzeOptions {
   profile: GitHubProfile;
   repos: RepoWithPriority[];
@@ -26,7 +28,7 @@ function cacheKey(options: AnalyzeOptions): string {
     .map((item) => `${item.repo.full_name}:${item.repo.pushed_at}:${item.priority}`)
     .sort()
     .join("|");
-  return `ai:${options.profile.login}:${options.purpose}:${options.style}:${options.includeRecommendations}:${repoKey}`;
+  return `ai:${ANALYSIS_CACHE_VERSION}:${options.profile.login}:${options.purpose}:${options.style}:${options.includeRecommendations}:${repoKey}`;
 }
 
 export function useAiAnalysis() {
