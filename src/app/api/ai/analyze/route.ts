@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { AnalysisRequest, AnalysisResponse, RepoAnalysisBundle } from "@/types/analysis";
 import { ingestFullRepos } from "@/lib/full-repo-ingest";
+import { getServerGitHubToken } from "@/lib/server-github-token";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = "openrouter/owl-alpha";
-
-function getGitHubToken(req: Request): string | undefined {
-  return req.headers.get("x-github-token") || process.env.GITHUB_TOKEN || process.env.GITHUB_API_TOKEN || undefined;
-}
 
 function purposeLabel(purpose: AnalysisRequest["purpose"]): string {
   switch (purpose) {
@@ -69,7 +66,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "profile and selected repos are required" }, { status: 400 });
     }
 
-    const githubToken = getGitHubToken(req);
+    const githubToken = getServerGitHubToken(req);
     const bundles = await ingestFullRepos(body.repos, githubToken);
     const prompt = buildPrompt(body, bundles);
     const model = process.env.OPENROUTER_MODEL || DEFAULT_MODEL;

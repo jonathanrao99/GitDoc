@@ -41,6 +41,9 @@ async function githubFetch<T>(url: string, token?: string): Promise<T> {
   const res = await fetch(url, { headers: getHeaders(token) });
   if (!res.ok) {
     const text = await res.text();
+    if (res.status === 401) {
+      throw new Error("GitHub API error 401: Bad credentials. Check GITHUB_TOKEN in .env.local/Vercel or clear the optional browser token in Settings.");
+    }
     throw new Error(`GitHub API error ${res.status}: ${text.slice(0, 220)}`);
   }
   return res.json();
