@@ -10,16 +10,23 @@ import { TokenBudgetSelector } from "@/components/token-budget-selector";
 import { OutputFormatSelector } from "@/components/output-format-selector";
 import { generateContext } from "@/lib/context-generator";
 import { calculateOverallQuality, calculateRepoQuality, qualityLevel } from "@/lib/quality-score";
+import { estimateTokens } from "@/lib/token-estimator";
+import { useAiAnalysis } from "@/hooks/use-ai-analysis";
 import type { RepoWithPriority, TokenBudget, OutputFormat, OverallQualityScore, RepoQualityScore, ContextInsights as ContextInsightsType } from "@/types/context";
 import type { RepoContext } from "@/types/github";
+import type { AnalysisPurpose, AssessmentStyle } from "@/types/analysis";
 
 export default function Home() {
   const { loading, error, profile, repos, fetchProfile, reset } = useProfile();
   const { loading: loadingContext, contexts, fetchContexts } = useRepoContext();
+  const { loading: loadingAnalysis, error: analysisError, result: analysisResult, cacheHit, analyze, reset: resetAnalysis } = useAiAnalysis();
 
   const [selectedRepos, setSelectedRepos] = useState<RepoWithPriority[]>([]);
   const [budget, setBudget] = useState<TokenBudget>("standard");
   const [format, setFormat] = useState<OutputFormat>("claude");
+  const [purpose, setPurpose] = useState<AnalysisPurpose>("complete");
+  const [style, setStyle] = useState<AssessmentStyle>("balanced");
+  const [includeRecommendations, setIncludeRecommendations] = useState(false);
   const [tokenInput, setTokenInput] = useState("");
   const [showTokenInput, setShowTokenInput] = useState(false);
 
@@ -35,11 +42,20 @@ export default function Home() {
     const reposToFetch = repos.map((r) => r.repo);
     if (reposToFetch.length === 0) return;
     await fetchContexts(reposToFetch);
-  }, [fetchContexts]);
+    if (profile) {
+      await analyze({ profile, repos, purpose, style, includeRecommendations });
+    }
+  }, [analyze, fetchContexts, includeRecommendations, profile, purpose, style]);
 
   const handleSelectionChange = useCallback((repos: RepoWithPriority[]) => {
     setSelectedRepos(repos);
-  }, []);
+    resetAnalysis();
+  }, [resetAnalysis]);
+
+  const handleReset = useCallback(() => {
+    resetAnalysis();
+    reset();
+  }, [reset, resetAnalysis]);
 
   const reposWithContext = useMemo(() => {
     return selectedRepos
@@ -64,9 +80,12 @@ export default function Home() {
   }, [reposWithContext]);
 
   const generationResult = useMemo(() => {
+    if (analysisResult) return { markdown: analysisResult.markdown, tokens: estimateTokens(analysisResult.markdown) };
     if (reposWithContext.length === 0 || !profile) return null;
     return generateContext(profile, reposWithContext, budget, format);
-  }, [profile, reposWithContext, budget, format]);
+  }, [analysisResult, profile, reposWithContext, budget, format]);
+
+  const privateSelected = selectedRepos.some((item) => item.repo.private);
 
   const insights = useMemo((): ContextInsightsType | null => {
     if (reposWithContext.length === 0) return null;
@@ -136,6 +155,41 @@ export default function Home() {
               </div>
 
               <div>
+                <p className="mb-2 font-[var(--font-headline)] text-sm uppercase text-black">AI analysis</p>
+                <div className="space-y-2">
+                  <select
+                    value={purpose}
+                    onChange={(e) => setPurpose(e.target.value as AnalysisPurpose)}
+                    className="w-full border-[3px] border-black bg-white px-2 py-2 font-mono text-xs uppercase text-black focus:border-[5px] focus:outline-none"
+                  >
+                    <option value="complete">Complete Report</option>
+                    <option value="coding-agent">Coding Agent</option>
+                    <option value="portfolio">Portfolio</option>
+                    <option value="technical-audit">Technical Audit</option>
+                    <option value="recruiter">Recruiter</option>
+                  </select>
+                  <select
+                    value={style}
+                    onChange={(e) => setStyle(e.target.value as AssessmentStyle)}
+                    className="w-full border-[3px] border-black bg-white px-2 py-2 font-mono text-xs uppercase text-black focus:border-[5px] focus:outline-none"
+                  >
+                    <option value="balanced">Balanced</option>
+                    <option value="presentation">Presentation</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                  <label className="flex items-center gap-2 font-mono text-xs text-black">
+                    <input
+                      type="checkbox"
+                      checked={includeRecommendations}
+                      onChange={(e) => setIncludeRecommendations(e.target.checked)}
+                      className="h-4 w-4 appearance-none border-[3px] border-black bg-white checked:bg-black"
+                    />
+                    Include recommendations
+                  </label>
+                </div>
+              </div>
+
+              <div>
                 <p className="mb-2 font-[var(--font-headline)] text-sm uppercase text-black">GitHub token</p>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <input
@@ -152,7 +206,7 @@ export default function Home() {
                     Save
                   </button>
                 </div>
-                <p className="mt-2 font-mono text-[11px] text-black">Stored locally. Used only to raise GitHub API limits.</p>
+                <p className="mt-2 font-mono text-[11px] text-black">Optional override. The server token is used by default when configured.</p>
               </div>
             </div>
           </div>
@@ -187,7 +241,7 @@ export default function Home() {
                   </p>
                 </div>
                 <button
-                  onClick={reset}
+                  onClick={handleReset}
                   className="ml-auto shrink-0 text-xs uppercase tracking-[1px] text-black underline hover:text-[#0000ff]"
                 >
                   Change
@@ -200,8 +254,18 @@ export default function Home() {
                   qualityScores={qualityScores}
                   onSelectionChange={handleSelectionChange}
                   onGenerate={handleGenerate}
-                  loadingContext={loadingContext}
+                  loadingContext={loadingContext || loadingAnalysis}
                 />
+                {privateSelected && (
+                  <p className="mt-3 border-[3px] border-black bg-white p-2 font-mono text-[11px] text-black">
+                    Private repo contents will be sent to OpenRouter for AI analysis.
+                  </p>
+                )}
+                {analysisError && (
+                  <p className="mt-3 border-[3px] border-[#ff0000] bg-white p-2 font-mono text-[11px] text-[#ff0000]">
+                    {analysisError}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -215,6 +279,9 @@ export default function Home() {
                 format={format}
                 onBudgetChange={setBudget}
                 onFormatChange={setFormat}
+                model={analysisResult?.model}
+                sourceStats={analysisResult?.sourceStats}
+                cacheHit={cacheHit}
               />
             </div>
           </div>

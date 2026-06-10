@@ -7,8 +7,9 @@ Live site: https://git-docv1.vercel.app
 ## Features
 
 - Fetch public GitHub profile and repository metadata.
+- Use a server-side GitHub token for higher API limits and accessible private repositories.
 - Select repositories and adjust priority levels.
-- Generate assistant-ready context in multiple output formats.
+- Generate OpenRouter-powered repository assessments with file citations.
 - Estimate token usage and summarize repository quality signals.
 - Publish SEO, sitemap, robots, Open Graph, and `llms.txt` metadata.
 
@@ -38,9 +39,12 @@ Open http://localhost:3000.
 
 ```bash
 NEXT_PUBLIC_SITE_URL=https://git-docv1.vercel.app
+GITHUB_TOKEN=
+OPENROUTER_API_KEY=
+OPENROUTER_MODEL=openrouter/owl-alpha
 ```
 
-Set the same value in Vercel project environment variables for production deployments.
+Set the same values in Vercel project environment variables for production deployments. Keep `GITHUB_TOKEN` and `OPENROUTER_API_KEY` server-only; do not prefix them with `NEXT_PUBLIC_`.
 
 ## Scripts
 

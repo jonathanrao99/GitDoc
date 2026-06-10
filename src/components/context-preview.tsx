@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { ContextInsights as ContextInsightsType, OutputFormat, OverallQualityScore, TokenBudget } from "@/types/context";
+import type { AnalysisResponse } from "@/types/analysis";
 import { ContextInsights } from "./context-insights";
 
 interface ContextPreviewProps {
@@ -13,6 +14,9 @@ interface ContextPreviewProps {
   quality: OverallQualityScore;
   onBudgetChange: (budget: TokenBudget) => void;
   onFormatChange: (format: OutputFormat) => void;
+  model?: string;
+  sourceStats?: AnalysisResponse["sourceStats"];
+  cacheHit?: boolean;
 }
 
 function renderPreview(markdown: string) {
@@ -21,8 +25,8 @@ function renderPreview(markdown: string) {
       <div className="flex h-full flex-col items-center justify-center text-center text-sm text-black">
         <div className="space-y-2 border-[3px] border-black bg-white p-6 text-left font-mono text-black">
           <p>Step 1: Select repositories from the list.</p>
-          <p>Step 2: Build LLM Context.</p>
-          <p>Step 3: Copy and paste into Claude, GPT, Gemini, Cursor, or Codex.</p>
+          <p>Step 2: Choose AI analysis settings.</p>
+          <p>Step 3: Analyze with OpenRouter and copy the cited report.</p>
         </div>
       </div>
     );
@@ -96,6 +100,9 @@ export function ContextPreview({
   tokens,
   insights,
   quality,
+  model,
+  sourceStats,
+  cacheHit,
 }: ContextPreviewProps) {
   const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState<"preview" | "markdown">("preview");
@@ -138,8 +145,15 @@ export function ContextPreview({
     <section className="flex min-h-[560px] flex-col lg:h-full lg:min-h-0">
       <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
-          <h2 ref={headingRef} tabIndex={-1} className="font-[var(--font-headline)] text-3xl leading-none text-black outline-none sm:text-4xl lg:text-3xl">Compiled Context</h2>
-          <p className="mt-2 font-mono text-xs text-black">Compiled context ready for Claude, GPT, Gemini, Codex, and Cursor.</p>
+          <h2 ref={headingRef} tabIndex={-1} className="font-[var(--font-headline)] text-3xl leading-none text-black outline-none sm:text-4xl lg:text-3xl">AI Repo Assessment</h2>
+          <p className="mt-2 font-mono text-xs text-black">
+            {model ? `Analyzed with ${model}${cacheHit ? " from local cache" : ""}.` : "Select repos and run AI analysis."}
+          </p>
+          {sourceStats && sourceStats.length > 0 && (
+            <p className="mt-1 font-mono text-[11px] text-black">
+              {sourceStats.map((stat) => `${stat.repo}: ${stat.filesAnalyzed} files${stat.private ? " private" : ""}`).join(" · ")}
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="w-full font-mono text-xs text-black sm:w-auto">~{tokens.toLocaleString()} tokens</span>
@@ -189,7 +203,7 @@ export function ContextPreview({
           <div className="mx-auto max-w-3xl">{renderPreview(markdown)}</div>
         ) : (
           <pre className="font-mono text-xs leading-relaxed text-black whitespace-pre-wrap">
-            {markdown || "Select repositories and click Build LLM Context to generate."}
+            {markdown || "Select repositories and click Analyze With AI to generate."}
           </pre>
         )}
       </div>

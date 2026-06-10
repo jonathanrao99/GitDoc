@@ -34,6 +34,7 @@ export interface GitHubRepo {
   fork: boolean;
   archived: boolean;
   disabled: boolean;
+  private?: boolean;
   open_issues_count: number;
   default_branch: string;
 }

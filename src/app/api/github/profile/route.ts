@@ -3,10 +3,14 @@ import { fetchProfile } from "@/lib/github";
 
 const GITHUB_OWNER_PATTERN = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
 
+function getGitHubToken(req: Request): string | undefined {
+  return req.headers.get("x-github-token") || process.env.GITHUB_TOKEN || process.env.GITHUB_API_TOKEN || undefined;
+}
+
 export async function POST(req: Request) {
   try {
     const { username } = await req.json();
-    const token = req.headers.get("x-github-token") || undefined;
+    const token = getGitHubToken(req);
     if (!username || typeof username !== "string") {
       return NextResponse.json({ error: "Username is required" }, { status: 400 });
     }

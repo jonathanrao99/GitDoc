@@ -5,13 +5,17 @@ const GITHUB_OWNER_PATTERN = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
 const GITHUB_REPO_PATTERN = /^[a-zA-Z0-9._-]{1,100}$/;
 const GITHUB_BRANCH_PATTERN = /^[^\s~^:?*[\\\]]{1,255}$/;
 
+function getGitHubToken(req: Request): string | undefined {
+  return req.headers.get("x-github-token") || process.env.GITHUB_TOKEN || process.env.GITHUB_API_TOKEN || undefined;
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const owner = searchParams.get("owner");
     const repo = searchParams.get("repo");
     const branch = searchParams.get("branch") || "main";
-    const token = req.headers.get("x-github-token") || undefined;
+    const token = getGitHubToken(req);
 
     if (!owner || !repo) {
       return NextResponse.json({ error: "owner and repo are required" }, { status: 400 });

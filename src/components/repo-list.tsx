@@ -168,7 +168,7 @@ export function RepoList({ repos, qualityScores, onSelectionChange, onGenerate, 
           disabled={selected.size === 0 || loadingContext}
           className="w-full border-[3px] border-black bg-black px-4 py-3 text-sm font-bold uppercase tracking-[2px] text-white hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:border-[#cccccc] disabled:bg-[#f5f5f5] disabled:text-black"
         >
-          {loadingContext ? "Building Context..." : "Build LLM Context"}
+          {loadingContext ? "Analyzing Repos..." : "Analyze With AI"}
         </button>
       </div>
     </div>
