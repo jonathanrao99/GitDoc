@@ -9,7 +9,7 @@ const MAX_CHARS_PER_REPO = 180_000;
 const MAX_TOTAL_CHARS = 520_000;
 
 const COMMON_HEADERS: Record<string, string> = {
-  Accept: "application/vnd.github.v3+json",
+  Accept: "application/vnd.github+json",
   "User-Agent": "GitDoc/1.0",
 };
 
@@ -30,7 +30,10 @@ interface GitBlob {
 
 function getHeaders(token?: string): Record<string, string> {
   const headers = { ...COMMON_HEADERS };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  const githubToken = token?.trim();
+  if (githubToken) {
+    headers.Authorization = `Bearer ${githubToken}`;
+  }
   return headers;
 }
 
