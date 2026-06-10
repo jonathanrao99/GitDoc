@@ -19,9 +19,20 @@ export interface AnalysisRequest {
 
 export interface RepoSourceFile {
   path: string;
+  role: string;
   size: number;
   content: string;
   truncated: boolean;
+}
+
+export interface RepoMap {
+  directories: string[];
+  entrypoints: string[];
+  apiFiles: string[];
+  componentFiles: string[];
+  configFiles: string[];
+  testFiles: string[];
+  docFiles: string[];
 }
 
 export interface RepoAnalysisBundle {
@@ -34,6 +45,15 @@ export interface RepoAnalysisBundle {
   priority: Priority;
   private: boolean;
   defaultBranch: string;
+  homepage: string | null;
+  stars: number;
+  forks: number;
+  openIssues: number;
+  license: string | null;
+  createdAt: string;
+  updatedAt: string;
+  pushedAt: string;
+  repoMap: RepoMap;
   files: RepoSourceFile[];
   skipped: {
     binaryOrAsset: number;

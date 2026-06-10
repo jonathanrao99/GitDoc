@@ -1,4 +1,4 @@
-import type { AnalysisRepoInput, RepoAnalysisBundle, RepoSourceFile } from "@/types/analysis";
+import type { AnalysisRepoInput, RepoAnalysisBundle, RepoMap, RepoSourceFile } from "@/types/analysis";
 
 const GITHUB_API = "https://api.github.com";
 
@@ -83,6 +83,45 @@ function scorePath(path: string): number {
   return score;
 }
 
+function fileRole(path: string): string {
+  if (/(readme|contributing|docs?\/|\.md$)/i.test(path)) return "docs";
+  if (/(package\.json|requirements.*\.txt|pyproject\.toml|go\.mod|cargo\.toml|composer\.json|dockerfile|vercel\.json|next\.config|tailwind\.config|tsconfig\.json|eslint|postcss|\.env\.example)$/i.test(path)) return "config/dependencies";
+  if (/(^|\/)(app|pages)\/.*(page|layout|route)\.(ts|tsx|js|jsx)$/i.test(path) || /(^|\/)(main|index|app)\.(ts|tsx|js|jsx|py|go|rs)$/i.test(path)) return "entrypoint";
+  if (/(^|\/)(api|routes|controllers|server)(\/|$)|\/route\.(ts|js)$/i.test(path)) return "api/backend";
+  if (/(^|\/)(components|ui)(\/|$)|\.(tsx|jsx)$/i.test(path)) return "ui/component";
+  if (/(^|\/)(hooks)(\/|$)/i.test(path)) return "client state/hook";
+  if (/(^|\/)(lib|utils|services)(\/|$)/i.test(path)) return "core logic/service";
+  if (/(test|spec|__tests__|e2e)/i.test(path)) return "test";
+  if (/(^|\/)(models|schemas|types)(\/|$)/i.test(path)) return "types/schema";
+  if (/\.(css|scss|sass)$/i.test(path)) return "styles";
+  return "source";
+}
+
+function uniqueSorted(values: string[], limit: number): string[] {
+  return [...new Set(values)].sort().slice(0, limit);
+}
+
+function repoMap(items: GitTreeItem[]): RepoMap {
+  const paths = items.filter((item) => item.type === "blob").map((item) => item.path);
+  const directories = uniqueSorted(
+    paths.flatMap((path) => {
+      const parts = path.split("/");
+      return parts.length > 1 ? [parts[0], parts.slice(0, 2).join("/")] : [];
+    }),
+    30
+  );
+
+  return {
+    directories,
+    entrypoints: uniqueSorted(paths.filter((path) => fileRole(path) === "entrypoint"), 20),
+    apiFiles: uniqueSorted(paths.filter((path) => fileRole(path) === "api/backend"), 25),
+    componentFiles: uniqueSorted(paths.filter((path) => fileRole(path) === "ui/component"), 25),
+    configFiles: uniqueSorted(paths.filter((path) => fileRole(path) === "config/dependencies"), 25),
+    testFiles: uniqueSorted(paths.filter((path) => fileRole(path) === "test"), 25),
+    docFiles: uniqueSorted(paths.filter((path) => fileRole(path) === "docs"), 20),
+  };
+}
+
 function decodeBlob(blob: GitBlob): string {
   if (blob.encoding !== "base64") return "";
   return Buffer.from(blob.content.replace(/\n/g, ""), "base64").toString("utf-8");
@@ -149,6 +188,7 @@ export async function ingestFullRepos(inputs: AnalysisRepoInput[], token?: strin
 
         files.push({
           path: item.path,
+          role: fileRole(item.path),
           size: item.size ?? raw.length,
           content: content.slice(0, allowed),
           truncated: raw.length > allowed || raw.length > MAX_CHARS_PER_FILE,
@@ -170,6 +210,15 @@ export async function ingestFullRepos(inputs: AnalysisRepoInput[], token?: strin
       priority: input.priority,
       private: Boolean(repo.private),
       defaultBranch: repo.default_branch,
+      homepage: repo.homepage,
+      stars: repo.stargazers_count,
+      forks: repo.forks_count,
+      openIssues: repo.open_issues_count,
+      license: repo.license?.spdx_id ?? repo.license?.name ?? null,
+      createdAt: repo.created_at,
+      updatedAt: repo.updated_at,
+      pushedAt: repo.pushed_at,
+      repoMap: repoMap(tree.tree),
       files,
       skipped,
     });

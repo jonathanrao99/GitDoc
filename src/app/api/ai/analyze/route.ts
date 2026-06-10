@@ -28,20 +28,40 @@ function filePacket(bundle: RepoAnalysisBundle): string {
   const files = bundle.files.map((file) => {
     const fence = file.path.endsWith(".md") ? "markdown" : "text";
     const truncated = file.truncated ? " TRUNCATED" : "";
-    return `FILE: ${file.path} (${file.size} bytes${truncated})\n\`\`\`${fence}\n${file.content}\n\`\`\``;
+    return `FILE: ${file.path}\nROLE: ${file.role}\nSIZE: ${file.size} bytes${truncated}\n\`\`\`${fence}\n${file.content}\n\`\`\``;
   }).join("\n\n");
+
+  const map = bundle.repoMap;
+  const repoMap = [
+    `DIRECTORIES: ${map.directories.join(", ") || "none detected"}`,
+    `ENTRYPOINTS: ${map.entrypoints.join(", ") || "none detected"}`,
+    `API/BACKEND FILES: ${map.apiFiles.join(", ") || "none detected"}`,
+    `COMPONENT FILES: ${map.componentFiles.join(", ") || "none detected"}`,
+    `CONFIG/DEPENDENCY FILES: ${map.configFiles.join(", ") || "none detected"}`,
+    `TEST FILES: ${map.testFiles.join(", ") || "none detected"}`,
+    `DOC FILES: ${map.docFiles.join(", ") || "none detected"}`,
+  ].join("\n");
 
   return [
     `REPOSITORY: ${bundle.fullName}`,
     `URL: ${bundle.url}`,
+    `HOMEPAGE: ${bundle.homepage ?? "none"}`,
     `PRIVATE: ${bundle.private ? "yes" : "no"}`,
     `PRIORITY: ${bundle.priority}`,
     `DESCRIPTION: ${bundle.description ?? "none"}`,
     `PRIMARY LANGUAGE: ${bundle.language ?? "unknown"}`,
     `TOPICS: ${bundle.topics.join(", ") || "none"}`,
     `DEFAULT BRANCH: ${bundle.defaultBranch}`,
+    `STARS: ${bundle.stars}`,
+    `FORKS: ${bundle.forks}`,
+    `OPEN ISSUES: ${bundle.openIssues}`,
+    `LICENSE: ${bundle.license ?? "none"}`,
+    `CREATED: ${bundle.createdAt}`,
+    `UPDATED: ${bundle.updatedAt}`,
+    `PUSHED: ${bundle.pushedAt}`,
     `FILES ANALYZED: ${bundle.files.length}`,
     `SKIPPED: ${JSON.stringify(bundle.skipped)}`,
+    `REPO MAP:\n${repoMap}`,
     files,
   ].join("\n");
 }
@@ -51,7 +71,55 @@ function buildPrompt(body: AnalysisRequest, bundles: RepoAnalysisBundle[]): stri
     ? "Include a dedicated Recommendations section with prioritized improvements, missing tests, security concerns, architecture improvements, deployment readiness, and portfolio positioning where supported by evidence."
     : "Do not include a dedicated recommendations/improvements section. You may mention limitations only when needed to accurately explain the assessment.";
 
-  return `You are GitDoc's repository assessment engine. Analyze the actual source files below, not only descriptions or READMEs. Produce a useful markdown report with file citations.\n\nDeveloper: ${body.profile.name ?? body.profile.login} (@${body.profile.login})\nGitHub profile: ${body.profile.html_url}\nReport purpose: ${purposeLabel(body.purpose)}\nAssessment style: ${styleInstruction(body.style)}\n${recommendationInstruction}\n\nRequired behavior:\n- Base claims on file evidence and cite file paths inline, e.g. \`src/app/page.tsx\`, \`package.json\`, \`README.md\`.\n- For each selected repo, explain what the app/system actually does, how it is implemented, and which files prove that.\n- Identify main architecture, data flow, UI/backend/API boundaries, dependencies, tests, deployment/configuration, and notable implementation details.\n- Include a Cross-Repository Analysis section comparing strengths, repeated patterns, focus areas, and overall positioning.\n- If private repos are included, do not expose secrets or claim hidden behavior beyond the provided files.\n- If files were skipped/truncated, mention that the assessment is bounded by analyzed files.\n- Do not fabricate files, features, metrics, or production usage.\n\nSelected repository source packets:\n\n${bundles.map(filePacket).join("\n\n---\n\n")}`;
+  return `You are GitDoc's repository assessment engine. Analyze the actual source files below, not only descriptions or READMEs. Produce a practical, evidence-backed markdown report that a developer, recruiter, or coding agent can use immediately.
+
+Developer: ${body.profile.name ?? body.profile.login} (@${body.profile.login})
+GitHub profile: ${body.profile.html_url}
+Report purpose: ${purposeLabel(body.purpose)}
+Assessment style: ${styleInstruction(body.style)}
+${recommendationInstruction}
+
+Required behavior:
+- Base every major claim on file evidence and cite file paths inline, e.g. \`src/app/page.tsx\`, \`package.json\`, \`README.md\`.
+- Prefer concrete implementation details over generic praise. Explain what code exists, how it is wired together, and what is missing.
+- Use the repo map and file roles to reason about architecture before discussing raw file contents.
+- For each selected repo, explain what the app/system does, how it is implemented, and which files prove that.
+- Identify architecture, data flow, UI/backend/API boundaries, dependencies, tests, deployment/configuration, security/privacy considerations, and notable implementation details.
+- Include a Cross-Repository Analysis section comparing strengths, repeated patterns, focus areas, and overall positioning.
+- If private repos are included, do not expose secrets or claim hidden behavior beyond the provided files.
+- If files were skipped/truncated, mention that the assessment is bounded by analyzed files.
+- Do not fabricate files, features, metrics, production usage, test coverage, or business impact.
+
+Required report structure:
+# GitDoc Repository Assessment
+
+## Executive Summary
+- 4-6 bullets describing the strongest evidence-backed conclusions.
+
+## Selected Repositories At A Glance
+- Table with repository, purpose, primary stack, evidence files, maturity/readiness, and notable risk.
+
+## Repository Deep Dives
+For each repo include:
+### <repo name>
+#### What It Does
+#### Architecture And Data Flow
+#### Key Files And Why They Matter
+#### Strengths
+#### Risks, Gaps, Or Unknowns
+#### Best Use For AI/Coding Agents
+
+## Cross-Repository Patterns
+## Portfolio / Positioning Notes
+## Coding Agent Brief
+- Include concise bullets a future coding agent should know before editing this codebase.
+${body.includeRecommendations ? "## Prioritized Recommendations\n- Group recommendations by impact and cite the files that justify them." : ""}
+## Evidence Limits
+- Mention skipped/truncated files and any conclusions that require manual confirmation.
+
+Selected repository source packets:
+
+${bundles.map(filePacket).join("\n\n---\n\n")}`;
 }
 
 export async function POST(req: NextRequest) {
@@ -84,7 +152,7 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: "system",
-            content: "You are a senior software architect and technical evaluator. Return only markdown.",
+            content: "You are a senior software architect, technical evaluator, and pragmatic coding-agent context writer. Return only markdown with precise file citations.",
           },
           { role: "user", content: prompt },
         ],
