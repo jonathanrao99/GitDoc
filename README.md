@@ -1,17 +1,66 @@
 # GitDoc
 
-GitDoc compiles public GitHub profiles and repositories into structured, LLM-ready markdown for Claude, GPT, Gemini, Cursor, Codex, and other AI coding assistants.
+[![Live Site](https://img.shields.io/badge/live-git--docv1.vercel.app-black)](https://git-docv1.vercel.app)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-149eca)](https://react.dev)
+[![OpenRouter](https://img.shields.io/badge/AI-OpenRouter-6f42c1)](https://openrouter.ai)
+
+GitDoc turns GitHub repositories into rich, evidence-backed AI context. Enter a GitHub username, select repositories, and generate structured repository assessments for coding agents, technical reviews, portfolio positioning, recruiter summaries, and LLM-ready markdown.
 
 Live site: https://git-docv1.vercel.app
 
-## Features
+Repository: https://github.com/jonathanrao99/GitDoc
 
-- Fetch public GitHub profile and repository metadata.
-- Use a server-side GitHub token for higher API limits and accessible private repositories.
-- Select repositories and adjust priority levels.
-- Generate OpenRouter-powered repository assessments with file citations.
-- Estimate token usage and summarize repository quality signals.
-- Publish SEO, sitemap, robots, Open Graph, and `llms.txt` metadata.
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jonathanrao99/GitDoc&type=Date)](https://www.star-history.com/#jonathanrao99/GitDoc&Date)
+
+## What GitDoc Does
+
+- Fetches public and token-accessible GitHub profile and repository metadata.
+- Uses a server-side GitHub token for higher API limits and private repository access when available.
+- Lets users select repositories and assign priority levels.
+- Ingests important source files while filtering generated files, assets, dependencies, and oversized files.
+- Classifies files by role, including entrypoints, API routes, components, hooks, services, configs, docs, tests, and schemas.
+- Generates OpenRouter-powered repository assessments with file citations.
+- Produces coding-agent briefs, architecture summaries, portfolio notes, evidence limits, and optional prioritized recommendations.
+- Publishes SEO, GEO, AEO, sitemap, robots, Open Graph, and `llms.txt` metadata.
+
+## SEO, GEO, And AEO
+
+GitDoc is optimized for traditional search engines, generative AI engines, and answer engines.
+
+- SEO: metadata, canonical URL, sitemap, robots rules, Open Graph image, Twitter card, and software application schema.
+- GEO: `llms.txt`, AI crawler permissions, structured repository descriptions, and clear crawl targets for generative engines.
+- AEO: FAQ structured data, concise answer-oriented copy, direct feature explanations, and evidence-backed positioning for answer engines.
+
+## AI Output
+
+The generated report includes:
+
+- Executive Summary
+- Selected Repositories At A Glance
+- Repository Deep Dives
+- Architecture And Data Flow
+- Key Files And Why They Matter
+- Strengths
+- Risks, Gaps, Or Unknowns
+- Best Use For AI/Coding Agents
+- Cross-Repository Patterns
+- Portfolio / Positioning Notes
+- Coding Agent Brief
+- Evidence Limits
+- Optional Prioritized Recommendations
+
+## Tech Stack
+
+- Next.js 16 App Router
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- OpenRouter chat completions
+- GitHub REST API
+- Vercel deployment
 
 ## Getting Started
 
@@ -54,8 +103,12 @@ Set the same values in Vercel project environment variables for production deplo
 - `npm run build` creates a production build.
 - `npm run start` starts the production server.
 
-## Deploy
+## Deployment
 
-The app is deployed on Vercel from the GitHub repository:
+GitDoc is deployed on Vercel:
+
+https://git-docv1.vercel.app
+
+Deploy from GitHub:
 
 https://github.com/jonathanrao99/GitDoc

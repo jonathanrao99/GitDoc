@@ -3,7 +3,8 @@ import { Archivo_Black, Space_Mono, Work_Sans } from "next/font/google";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
-const description = "Compile GitHub repositories into deep, structured, LLM-ready context for Claude, GPT, Gemini, Cursor, Codex, and other AI coding assistants.";
+const title = "GitDoc | AI GitHub Repository Context Compiler";
+const description = "Generate OpenRouter-powered GitHub repository assessments, coding-agent briefs, architecture summaries, and LLM-ready markdown with file citations.";
 
 const archivoBlack = Archivo_Black({
   variable: "--font-headline",
@@ -33,7 +34,13 @@ export const metadata: Metadata = {
   keywords: [
     "GitHub context generator",
     "LLM context compiler",
+    "OpenRouter GitHub analysis",
+    "AI repository assessment",
     "AI coding assistant context",
+    "coding agent brief",
+    "repository architecture analysis",
+    "answer engine optimization",
+    "generative engine optimization",
     "Claude repository context",
     "GPT repository context",
     "Cursor context",
@@ -41,8 +48,9 @@ export const metadata: Metadata = {
     "developer tooling",
     "repo documentation",
     "GitHub README analyzer",
+    "technical portfolio analysis",
   ],
-  authors: [{ name: "GitDoc" }],
+  authors: [{ name: "GitDoc", url: siteUrl }],
   creator: "GitDoc",
   publisher: "GitDoc",
   category: "Developer Tools",
@@ -53,7 +61,7 @@ export const metadata: Metadata = {
     type: "website",
     url: "/",
     siteName: "GitDoc",
-    title: "GitDoc | GitHub Repo Context Compiler for AI Assistants",
+    title,
     description,
     images: [
       {
@@ -66,7 +74,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "GitDoc | GitHub Repo Context Compiler for AI Assistants",
+    title,
     description,
     images: ["/opengraph-image"],
   },
@@ -84,7 +92,12 @@ export const metadata: Metadata = {
   other: {
     "geo.region": "US",
     "geo.placename": "United States",
+    "geo.position": "37.0902;-95.7129",
+    "ICBM": "37.0902, -95.7129",
     "ai-crawlable": "true",
+    "answer-engine-optimized": "true",
+    "generative-engine-optimized": "true",
+    "content-purpose": "AI repository assessment, GitHub context generation, coding agent briefing",
     "llms.txt": `${siteUrl}/llms.txt`,
   },
 };
@@ -96,23 +109,74 @@ export default function RootLayout({
 }>) {
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "GitDoc",
-    applicationCategory: "DeveloperApplication",
-    operatingSystem: "Web",
-    url: siteUrl,
-    description,
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-    },
-    featureList: [
-      "GitHub repository context compilation",
-      "LLM-ready markdown output",
-      "Repository architecture summaries",
-      "Technology stack detection",
-      "Claude, GPT, Gemini, Cursor, and Codex compatible output",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        name: "GitDoc",
+        url: siteUrl,
+        description,
+        inLanguage: "en-US",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: `${siteUrl}/?username={search_term_string}`,
+          "query-input": "required name=search_term_string",
+        },
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": `${siteUrl}/#software`,
+        name: "GitDoc",
+        applicationCategory: "DeveloperApplication",
+        applicationSubCategory: "AI Developer Tool",
+        operatingSystem: "Web",
+        url: siteUrl,
+        description,
+        isAccessibleForFree: true,
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+        },
+        featureList: [
+          "OpenRouter-powered GitHub repository assessment",
+          "LLM-ready markdown output",
+          "Coding-agent context briefs",
+          "Repository architecture and data-flow summaries",
+          "File citation based analysis",
+          "SEO, GEO, AEO, sitemap, robots, and llms.txt metadata",
+        ],
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${siteUrl}/#faq`,
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: "What does GitDoc do?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "GitDoc analyzes selected GitHub repositories and generates evidence-backed AI context, architecture summaries, coding-agent briefs, and LLM-ready markdown with file citations.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "Does GitDoc use OpenRouter?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Yes. GitDoc uses OpenRouter chat completions to produce rich repository assessments from selected source files and metadata.",
+            },
+          },
+          {
+            "@type": "Question",
+            name: "Can GitDoc analyze private repositories?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "GitDoc can analyze repositories accessible to the configured GitHub token. Private repository contents may be sent to OpenRouter when selected for AI analysis.",
+            },
+          },
+        ],
+      },
     ],
   };
 
